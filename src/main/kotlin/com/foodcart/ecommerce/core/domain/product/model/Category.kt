@@ -1,5 +1,7 @@
 package com.foodcart.ecommerce.core.domain.product.model
 
+import com.foodcart.ecommerce.core.error.ErrorCode
+import com.foodcart.ecommerce.core.error.ErrorMessages
 import java.math.BigDecimal
 
 class Category(
@@ -11,16 +13,16 @@ class Category(
 ){
     init {
         require(name.isNotBlank()){
-            "Category name cannot be blank"
+            ErrorMessages.CATEGORY_NAME_NOT_BLANK
         }
         require(profitMargin >= BigDecimal.ZERO){
-            "Profit margin cannot be negative: $profitMargin"
+            ErrorCode.PROFIT_MARGIN_NEGATIVE.message.format(profitMargin.toDouble())
         }
         require(maxDiscount >= BigDecimal.ZERO) {
-            "Max discount cannot be negative: $maxDiscount"
+            ErrorCode.MAXIMUS_DISCOUNT_NOT_NEGATIVE.message.format(maxDiscount.toDouble())
         }
         require(maxDiscount <= BigDecimal(100)){
-            "Max discount cannot exceed 100%: $maxDiscount"
+            ErrorCode.INVALID_DISCOUNT_MAX_PERCENTAGE.message.format(maxDiscount.toDouble())
         }
     }
     override fun equals(other: Any?): Boolean {
