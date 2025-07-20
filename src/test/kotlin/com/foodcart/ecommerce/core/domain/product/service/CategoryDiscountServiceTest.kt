@@ -1,8 +1,9 @@
 package com.foodcart.ecommerce.core.domain.product.service
 
-import com.foodcart.ecommerce.core.domain.common.DomainError
-import com.foodcart.ecommerce.core.domain.common.Result
+import com.foodcart.ecommerce.core.domain.common.ProductError
+import com.foodcart.ecommerce.core.shared.Result
 import com.foodcart.ecommerce.core.domain.product.model.Category
+import com.foodcart.ecommerce.core.error.ErrorCode
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -23,32 +24,31 @@ class CategoryDiscountServiceTest {
         val result = discountService.applyDiscount(activeCategory, price, discount)
 
         assertTrue(result.isSuccess())
-        assertEquals(BigDecimal("90.00"), result.getOrNull()) // 100 - 10% = 90
+        assertEquals(BigDecimal("90.00"), result.getOrNull())
     }
 
     @Test
     fun `should return error for discount exceeding maximum`() {
         val price = BigDecimal("100.0")
-        val excessiveDiscount = BigDecimal("20.0") // Máximo é 15%
+        val excessiveDiscount = BigDecimal("20.0")
 
         val result = discountService.applyDiscount(activeCategory, price, excessiveDiscount)
 
         assertTrue(result.isFailure())
         assertTrue(result is Result.Failure)
-        assertTrue((result as Result.Failure).error is DomainError.InvalidDiscountPercentage)
-        assertEquals("INVALID_DISCOUNT_PERCENTAGE", result.error.code)
+        assertTrue((result).error is ProductError.InvalidDiscountPercentage)
+        assertEquals(ErrorCode.INVALID_DISCOUNT_MAX_PERCENTAGE.code, result.error.code)
     }
 
     @Test
     fun `should return error for negative discount`() {
-        val price = BigDecimal("100.0")
         val negativeDiscount = BigDecimal("-5.0")
 
         val result = discountService.validateDiscount(activeCategory, negativeDiscount)
 
         assertTrue(result.isFailure())
         assertTrue(result is Result.Failure)
-        assertTrue((result as Result.Failure).error is DomainError.NegativeDiscountPercentage)
+        assertTrue((result).error is ProductError.NegativeDiscountPercentage)
     }
 
     @Test
@@ -60,7 +60,7 @@ class CategoryDiscountServiceTest {
 
         assertTrue(result.isFailure())
         assertTrue(result is Result.Failure)
-        assertTrue((result as Result.Failure).error is DomainError.InactiveCategory)
+        assertTrue((result).error is ProductError.InactiveCategory)
     }
 
     @Test
@@ -71,7 +71,7 @@ class CategoryDiscountServiceTest {
         val result = discountService.calculateDiscountAmount(activeCategory, price, discount)
 
         assertTrue(result.isSuccess())
-        assertEquals(BigDecimal("20.00"), result.getOrNull()) // 200 * 10% = 20
+        assertEquals(BigDecimal("20.00"), result.getOrNull())
     }
 
     @Test
@@ -92,9 +92,9 @@ class CategoryDiscountServiceTest {
 
     @Test
     fun `should validate discount permission correctly`() {
-        assertTrue(discountService.canApplyDiscount(activeCategory, BigDecimal("10.0")))  // Válido
-        assertTrue(discountService.canApplyDiscount(activeCategory, BigDecimal("15.0")))  // No limite
-        assertFalse(discountService.canApplyDiscount(activeCategory, BigDecimal("20.0"))) // Acima do limite
-        assertFalse(discountService.canApplyDiscount(inactiveCategory, BigDecimal("10.0"))) // Categoria inativa
+        assertTrue(discountService.canApplyDiscount(activeCategory, BigDecimal("10.0")))
+        assertTrue(discountService.canApplyDiscount(activeCategory, BigDecimal("15.0")))
+        assertFalse(discountService.canApplyDiscount(activeCategory, BigDecimal("20.0")))
+        assertFalse(discountService.canApplyDiscount(inactiveCategory, BigDecimal("10.0")))
     }
 }

@@ -1,23 +1,23 @@
 package com.foodcart.ecommerce.core.domain.product.service
 
-import com.foodcart.ecommerce.core.domain.common.DomainError
-import com.foodcart.ecommerce.core.domain.common.Result
+import com.foodcart.ecommerce.core.domain.common.ProductError
+import com.foodcart.ecommerce.core.shared.Result
 import com.foodcart.ecommerce.core.domain.product.model.Category
 import java.math.BigDecimal
 import java.math.RoundingMode
 
 
 class CategoryDiscountService {
-    fun validateDiscount(category: Category, discountPercentage: BigDecimal): Result<Unit> {
+    fun validateDiscount(category: Category, discountPercentage: BigDecimal): Result<Unit, ProductError> {
         return when {
-            !category.isActive -> Result.Failure(DomainError.InactiveCategory(category.name))
+            !category.isActive -> Result.Failure(ProductError.InactiveCategory(category.name))
 
             discountPercentage < BigDecimal.ZERO -> Result.Failure(
-                DomainError.NegativeDiscountPercentage(discountPercentage)
+                ProductError.NegativeDiscountPercentage(discountPercentage)
             )
 
             discountPercentage > category.maxDiscount -> Result.Failure(
-                DomainError.InvalidDiscountPercentage(
+                ProductError.InvalidDiscountPercentage(
                     discountPercentage = discountPercentage,
                     maxAllowed = category.maxDiscount,
                     categoryName = category.name
@@ -32,9 +32,9 @@ class CategoryDiscountService {
         category: Category,
         price: BigDecimal,
         discountPercentage: BigDecimal
-    ): Result<BigDecimal> {
+    ): Result<BigDecimal, ProductError> {
         if (price < BigDecimal.ZERO) {
-            return Result.Failure(DomainError.InvalidPrice(price))
+            return Result.Failure(ProductError.InvalidPrice(price))
         }
         return validateDiscount(category, discountPercentage).map {
             price
@@ -47,17 +47,17 @@ class CategoryDiscountService {
         category: Category,
         price: BigDecimal,
         discountPercentage: BigDecimal
-    ): Result<BigDecimal> {
+    ): Result<BigDecimal, ProductError> {
         return calculateDiscountAmount(category, price, discountPercentage).map { discountAmount ->
             price.subtract(discountAmount).setScale(2, RoundingMode.HALF_UP)
         }
     }
 
-    fun getMaximumDiscountAllowed(category: Category): Result<BigDecimal> {
+    fun getMaximumDiscountAllowed(category: Category): Result<BigDecimal, ProductError> {
         return if (category.isActive) {
             Result.Success(category.maxDiscount)
         } else {
-            Result.Failure(DomainError.InactiveCategory(category.name))
+            Result.Failure(ProductError.InactiveCategory(category.name))
         }
     }
 
@@ -65,7 +65,7 @@ class CategoryDiscountService {
         category: Category,
         price: BigDecimal,
         discountPercentage: BigDecimal
-    ): Result<DiscountResult> {
+    ): Result<DiscountResult, ProductError> {
         return calculateDiscountAmount(category, price, discountPercentage).map { discountAmount ->
             val finalPrice = price.subtract(discountAmount).setScale(2, RoundingMode.HALF_UP)
             DiscountResult(
