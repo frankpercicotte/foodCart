@@ -159,7 +159,7 @@ com.foodcart/
 
 - Docker e Docker Compose
 - JDK 17+
-- IntelliJ IDEA (recomendado)
+- IntelliJ IDEA
 
 **Comandos:**
 ```bash
