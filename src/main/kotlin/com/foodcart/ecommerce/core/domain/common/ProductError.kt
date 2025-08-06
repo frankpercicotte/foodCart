@@ -53,4 +53,50 @@ sealed class ProductError(
         message = ErrorCode.CALCULATION_ERROR.message.format(operation,details),
         context = mapOf("operation" to operation, "details" to details)
     )
+
+    data class InvalidCategoryName(val name: String) : ProductError(
+        code = ErrorCode.INVALID_CATEGORY_NAME.code,
+        message = ErrorCode.INVALID_CATEGORY_NAME.format(name),
+        context = mapOf("name" to name)
+    )
+
+    data class InvalidProfitMargin(val profitMargin: BigDecimal) : ProductError(
+        code = ErrorCode.INVALID_PROFIT_MARGIN.code,
+        message = ErrorCode.INVALID_PROFIT_MARGIN.format(profitMargin.toDouble()),
+        context = mapOf("profitMargin" to profitMargin)
+    )
+
+    data class InvalidMaxDiscount(val maxDiscount: BigDecimal) : ProductError(
+        code = ErrorCode.INVALID_MAX_DISCOUNT.code,
+        message = ErrorCode.INVALID_MAX_DISCOUNT.format(maxDiscount.toDouble()),
+        context = mapOf("maxDiscount" to maxDiscount)
+    )
+
+    data class MaxDiscountExceeded(val maxDiscount: BigDecimal) : ProductError(
+        code = ErrorCode.MAX_DISCOUNT_EXCEEDED.code,
+        message = ErrorCode.MAX_DISCOUNT_EXCEEDED.format(maxDiscount.toDouble()),
+        context = mapOf("maxDiscount" to maxDiscount)
+    )
+
+    data class CategoryNameAlreadyExists(val name: String) : ProductError(
+        code = ErrorCode.INVALID_CATEGORY_NAME.code,
+        message = ErrorCode.INVALID_CATEGORY_NAME.format(name),
+        context = mapOf("name" to name)
+    )
+
+    data class CategoryNotFound(val id: Long) : ProductError(
+        code = ErrorCode.CATEGORY_NOT_FOUND.code,
+        message = ErrorCode.CATEGORY_NOT_FOUND.format(id),
+        context = mapOf("id" to id)
+    )
+
+    data class DatabaseError(val operation: String, val details: String?) : ProductError(
+        code = ErrorCode.DATABASE_ERROR.code,
+        message = ErrorCode.DATABASE_ERROR.format(operation, details ?: "Unknown error"),
+        context = mapOf(
+            "operation" to operation,
+            "details" to (details ?: "Unknown error")
+        )
+    )
+
 }
