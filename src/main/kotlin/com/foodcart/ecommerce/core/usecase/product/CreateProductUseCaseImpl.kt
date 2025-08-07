@@ -11,10 +11,16 @@ class CreateProductUseCaseImpl(
 ): CreateProductUseCase {
 
     override fun execute(input: CreateProductUseCase.Input): Result<Product, ProductError> {
+        val normalizedName = input.name.lowercase()
+
+        if(productRepository.existsByNormalizedNameAndCategoryId(normalizedName, input.categoryId)){
+            return  Result.Failure(ProductError.ProductNameAlreadyExists(input.name))
+        }
 
         val product = Product(
             productId = null,
             name = input.name,
+            normalizedName = normalizedName,
             description =  input.description,
             price = input.price,
             cost = input.cost,

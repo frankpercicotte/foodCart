@@ -61,6 +61,10 @@ enum class ErrorCode(val code: String, val message: String) {
         "DATABASE_ERROR",
         "Database operation failed: %s - %s"
     ),
+    PRODUCT_NAME_ALREADY_EXISTS(
+        "PRODUCT_NAME_ALREADY_EXISTS",
+        "Product name already exists: '%s'"
+    ),
     ;
     fun format(vararg args: Any?): String {
         return String.format(message, *args)

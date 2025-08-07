@@ -7,12 +7,17 @@ import com.foodcart.ecommerce.core.shared.Result
 import com.foodcart.ecommerce.core.samples.CreateProductInputSample
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentMatchers.any
 import org.mockito.InjectMocks
 import org.mockito.Mock
+import org.mockito.Mockito.never
+import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
+import org.mockito.junit.jupiter.MockitoExtension
 import kotlin.test.assertTrue
 
+@ExtendWith(MockitoExtension::class)
 class CreateProductUseCaseTest {
     @InjectMocks
     private lateinit var createProductUseCase: CreateProductUseCaseImpl
@@ -26,10 +31,10 @@ class CreateProductUseCaseTest {
     fun `should create a new product successfully`(){
         val input = CreateProductInputSample.createProductInput()
 
-
         val expectedProduct = Product(
             productId = null,
             name = input.name,
+            normalizedName = input.name,
             description = input.description,
             price = input.price,
             cost = input.cost,
@@ -46,6 +51,20 @@ class CreateProductUseCaseTest {
 
         Assertions.assertTrue(result is Result.Success)
 
+    }
+
+    @Test
+    fun `should not create a new product when name already exist`(){
+        val input = CreateProductInputSample.createProductInput()
+        val normalizedName = input.name.lowercase()
+
+        `when`( productRepository.existsByNormalizedNameAndCategoryId(normalizedName, input.categoryId)).thenReturn(true)
+
+        val result = createProductUseCase.execute(input)
+
+        Assertions.assertTrue(result is Result.Failure)
+        verify(productRepository).existsByNormalizedNameAndCategoryId(normalizedName, input.categoryId)
+        verify(productRepository, never()).save(anyObject(Product::class.java))
     }
 
 }

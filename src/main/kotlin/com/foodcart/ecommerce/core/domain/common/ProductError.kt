@@ -99,4 +99,10 @@ sealed class ProductError(
         )
     )
 
+    data class ProductNameAlreadyExists(val name: String) : ProductError(
+        code = ErrorCode.PRODUCT_NAME_ALREADY_EXISTS.code,
+        message = ErrorCode.PRODUCT_NAME_ALREADY_EXISTS.format(name),
+        context = mapOf("name" to name)
+    )
+
 }
