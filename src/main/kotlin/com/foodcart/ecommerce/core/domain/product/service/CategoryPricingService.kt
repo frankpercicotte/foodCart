@@ -31,7 +31,7 @@ class CategoryPricingService {
         }
     }
 
-    fun calculateFinalPriceONe(category: Category, cost: BigDecimal): Result<BigDecimal, ProductError> {
+    fun calculateFinalPriceOne(category: Category, cost: BigDecimal): Result<BigDecimal, ProductError> {
         if (cost < BigDecimal.ZERO) {
             return Result.Failure(ProductError.InvalidCost(cost))
         }

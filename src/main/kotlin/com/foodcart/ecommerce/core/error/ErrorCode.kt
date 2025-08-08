@@ -32,7 +32,40 @@ enum class ErrorCode(val code: String, val message: String) {
     MAXIMUS_DISCOUNT_NOT_NEGATIVE(
         "MAXIMUS_DISCOUNT_NOT_NEGATIVE",
     "Max discount cannot be negative: '%.2f%%'"
-    );
+    ),
+    INVALID_CATEGORY_NAME(
+        "INVALID_CATEGORY_NAME",
+        "Category name cannot be blank: '%s'"
+    ),
+    INVALID_PROFIT_MARGIN(
+        "INVALID_PROFIT_MARGIN",
+        "Profit margin cannot be negative: '%.2f%%'"
+    ),
+    INVALID_MAX_DISCOUNT(
+        "INVALID_MAX_DISCOUNT",
+        "Max discount cannot be negative: '%.2f%%'"
+    ),
+    MAX_DISCOUNT_EXCEEDED(
+        "MAX_DISCOUNT_EXCEEDED",
+        "Max discount cannot exceed 100%%: '%.2f%%'"
+    ),
+    CATEGORY_NAME_ALREADY_EXISTS(
+        "CATEGORY_NAME_ALREADY_EXISTS",
+        "Category name '%s' already exists"
+    ),
+    CATEGORY_NOT_FOUND(
+        "CATEGORY_NOT_FOUND",
+        "Category not found with ID: %d"
+    ),
+    DATABASE_ERROR(
+        "DATABASE_ERROR",
+        "Database operation failed: %s - %s"
+    ),
+    PRODUCT_NAME_ALREADY_EXISTS(
+        "PRODUCT_NAME_ALREADY_EXISTS",
+        "Product name already exists: '%s'"
+    ),
+    ;
     fun format(vararg args: Any?): String {
         return String.format(message, *args)
     }
