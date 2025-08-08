@@ -13,7 +13,6 @@ fun interface CreateProductUseCase {
         val productId: String? = null,
         val name: String,
         val description: String,
-        val price: BigDecimal,
         val cost: BigDecimal,
         val discount: BigDecimal = BigDecimal.ZERO,
         val categoryId: String,
