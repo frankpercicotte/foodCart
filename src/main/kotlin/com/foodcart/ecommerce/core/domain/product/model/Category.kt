@@ -5,7 +5,7 @@ import com.foodcart.ecommerce.core.shared.Result
 import java.math.BigDecimal
 
 class Category(
-    val id: Long,
+    val categoryId: String? = null,
     val name: String,
     val profitMargin: BigDecimal,
     val maxDiscount: BigDecimal,
@@ -14,13 +14,13 @@ class Category(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Category) return false
-        return id == other.id
+        return categoryId == other.categoryId
     }
 
-    override fun hashCode(): Int = id.hashCode()
+    override fun hashCode(): Int = categoryId.hashCode()
 
     override fun toString(): String {
-        return "Category(id=$id, name='$name', profitMargin=$profitMargin%, maxDiscount=$maxDiscount%, active=$isActive)"
+        return "Category(id=$categoryId, name='$name', profitMargin=$profitMargin%, maxDiscount=$maxDiscount%, active=$isActive)"
     }
 
     companion object {
@@ -45,7 +45,7 @@ class Category(
             }
             return Result.Success(
                 Category(
-                    id = id,
+                    categoryId = id,
                     name = name,
                     profitMargin = profitMargin,
                     maxDiscount = maxDiscount,
@@ -63,7 +63,7 @@ class Category(
             isActive: Boolean = existingCategory.isActive
         ): Result<Category, ProductError> {
             return create(
-                id = existingCategory.id,
+                id = existingCategory.categoryId,
                 name = name,
                 profitMargin = profitMargin,
                 maxDiscount = maxDiscount,

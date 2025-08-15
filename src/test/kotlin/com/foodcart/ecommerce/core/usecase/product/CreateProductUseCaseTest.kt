@@ -18,7 +18,6 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 import java.math.BigDecimal
-import kotlin.test.assertTrue
 
 @ExtendWith(MockitoExtension::class)
 class CreateProductUseCaseTest {
@@ -41,7 +40,7 @@ class CreateProductUseCaseTest {
         val finalPrice = BigDecimal("10.00")
 
         val expectedCategory = Category(
-            id = input.categoryId.toLong(),
+            categoryId = input.categoryId.toLong(),
             name = "Arts",
             profitMargin = BigDecimal("0.20"),
             maxDiscount = BigDecimal("0.10")
