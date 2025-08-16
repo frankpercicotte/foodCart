@@ -1,9 +1,9 @@
 plugins {
-	kotlin("jvm") version "1.9.25"
-	kotlin("plugin.spring") version "1.9.25"
+	kotlin("jvm") version "2.0.21"
+	kotlin("plugin.spring") version "2.0.21"
 	id("org.springframework.boot") version "3.5.3"
 	id("io.spring.dependency-management") version "1.1.7"
-	kotlin("plugin.jpa") version "1.9.25"
+	kotlin("plugin.jpa") version "2.0.21"
 }
 
 group = "com.foodcart"
@@ -28,7 +28,7 @@ dependencies {
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("org.postgresql:postgresql")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
-	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+	testImplementation("org.jetbrains.kotlin:kotlin-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
@@ -46,4 +46,6 @@ allOpen {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+	// Silencia o aviso do JDK sobre Class Data Sharing em ambiente de teste
+	jvmArgs("-Xshare:off")
 }

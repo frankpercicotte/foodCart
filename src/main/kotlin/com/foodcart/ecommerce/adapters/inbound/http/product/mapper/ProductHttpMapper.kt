@@ -8,7 +8,6 @@ import com.foodcart.ecommerce.core.usecase.product.CreateProductUseCase
 
 fun CreateProductRequest.toInput(): CreateProductUseCase.Input =
     CreateProductUseCase.Input(
-        productId = null,
         name = this.name,
         description = this.description,
         cost = this.cost,

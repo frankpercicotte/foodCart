@@ -5,7 +5,7 @@ import com.foodcart.ecommerce.core.shared.Result
 import java.math.BigDecimal
 
 class Category(
-    val categoryId: String? = null,
+    val categoryId: Long? = null,
     val name: String,
     val profitMargin: BigDecimal,
     val maxDiscount: BigDecimal,
@@ -17,7 +17,7 @@ class Category(
         return categoryId == other.categoryId
     }
 
-    override fun hashCode(): Int = categoryId.hashCode()
+    override fun hashCode(): Int = categoryId?.hashCode() ?: 0
 
     override fun toString(): String {
         return "Category(id=$categoryId, name='$name', profitMargin=$profitMargin%, maxDiscount=$maxDiscount%, active=$isActive)"
@@ -25,7 +25,7 @@ class Category(
 
     companion object {
         fun create(
-            id: Long,
+            id: Long?,
             name: String,
             profitMargin: BigDecimal,
             maxDiscount: BigDecimal,
