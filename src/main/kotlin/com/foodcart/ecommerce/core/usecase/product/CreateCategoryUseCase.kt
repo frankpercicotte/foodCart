@@ -21,7 +21,7 @@ class CreateCategoryUseCase(
         }
 
         val category = Category(
-            id = 0L,
+            categoryId = null,
             name = request.name,
             profitMargin = request.profitMargin,
             maxDiscount = request.maxDiscount,
