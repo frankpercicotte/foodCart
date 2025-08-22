@@ -5,10 +5,11 @@ import com.foodcart.ecommerce.core.shared.Result
 import com.foodcart.ecommerce.core.domain.product.model.Category
 import com.foodcart.ecommerce.core.error.ErrorMessages
 import com.foodcart.ecommerce.core.shared.validation.validate
+import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
 
-
+@Service
 class CategoryPricingService {
 
     fun calculateMarginAmount(category: Category, cost: BigDecimal): Result<BigDecimal, ProductError> {

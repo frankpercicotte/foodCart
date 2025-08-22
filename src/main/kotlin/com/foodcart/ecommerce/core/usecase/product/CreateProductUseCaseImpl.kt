@@ -27,12 +27,11 @@ class CreateProductUseCaseImpl(
             return  Result.Failure(ProductError.ProductNameAlreadyExists(input.name))
         }
 
-        //Calculation price by cost and category
-        val category = categoryRepository.findById(input.categoryId.toLong())
+        val category = categoryRepository.findById(input.categoryId)
 
         if(category == null){
             logger.error("Category not found id={}", input.categoryId)
-            return Result.Failure(ProductError.CategoryNotFound(input.categoryId.toLong()))
+            return Result.Failure(ProductError.CategoryNotFound(input.categoryId))
         }
 
         if(!category.isActive){
