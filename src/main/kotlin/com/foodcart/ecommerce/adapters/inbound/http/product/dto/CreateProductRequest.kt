@@ -14,8 +14,8 @@ data class CreateProductRequest(
     val cost: BigDecimal= BigDecimal.ZERO,
     @field:DecimalMin("0.00")
     val discount: BigDecimal = BigDecimal.ZERO,
-    @field:NotBlank(message = "Category Id is required")
-    val categoryId: String,
+    @field:Min(1, message = "Category Id must be a positive number")
+    val categoryId: Long,
     @field:Min(0)
     val stockQuantity: Int,
     val imageUrl: String? = null,

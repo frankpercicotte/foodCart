@@ -7,8 +7,9 @@ import com.foodcart.ecommerce.core.domain.product.port.ProductRepository
 import com.foodcart.ecommerce.core.domain.product.service.CategoryPricingService
 import com.foodcart.ecommerce.core.shared.Result
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Service
 
-
+@Service
 class CreateProductUseCaseImpl(
     private val productRepository: ProductRepository,
     private val categoryRepository: CategoryRepository,
@@ -27,12 +28,11 @@ class CreateProductUseCaseImpl(
             return  Result.Failure(ProductError.ProductNameAlreadyExists(input.name))
         }
 
-        //Calculation price by cost and category
-        val category = categoryRepository.findById(input.categoryId.toLong())
+        val category = categoryRepository.findById(input.categoryId)
 
         if(category == null){
             logger.error("Category not found id={}", input.categoryId)
-            return Result.Failure(ProductError.CategoryNotFound(input.categoryId.toLong()))
+            return Result.Failure(ProductError.CategoryNotFound(input.categoryId))
         }
 
         if(!category.isActive){

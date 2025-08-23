@@ -10,7 +10,7 @@ class InMemoryProductRepository : ProductRepository {
 
     @Synchronized
     override fun save(product: Product): Product {
-        val id = product.productId ?: nextId.toString().also { nextId++ }
+        val id = product.productId ?: nextId.also { nextId++ }
         val saved = product.copy(productId = id)
         products.removeIf { it.productId == id }
         products.add(saved)
@@ -18,11 +18,17 @@ class InMemoryProductRepository : ProductRepository {
     }
 
     @Synchronized
-    override fun existsByNormalizedNameAndCategoryId(normalizedName: String, categoryId: String): Boolean {
+    override fun existsByNormalizedNameAndCategoryId(normalizedName: String, categoryId: Long): Boolean {
         return products.any { it.normalizedName == normalizedName && it.categoryId == categoryId }
     }
 
-    fun findAll(): List<Product> = products.toList()
+    @Synchronized
+    override fun findAll(): List<Product> = products.toList()
+
+    @Synchronized
+    override fun findById(productId: Long): Product? {
+        return products.find { it.productId == productId }
+    }
 
     @Synchronized
     fun clear() { products.clear() }

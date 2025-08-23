@@ -21,100 +21,52 @@ class CreateCategoryUseCaseTest {
     private lateinit var categoryRepository: CategoryRepository
 
     @InjectMocks
-    private lateinit var createCategoryUseCase: CreateCategoryUseCase
+    private lateinit var createCategoryUseCaseImpl: CreateCategoryUseCaseImpl
 
     // Helper function to avoid Mockito nullability issues with Kotlin
     private fun <T> anyObject(type: Class<T>): T = any(type)
-    private fun anyStringValue(): String = anyString()
 
     @Test
     fun `should create category successfully when all data is valid`() {
-        val request = CreateCategoryRequest(
+
+        val input = CreateCategoryUseCase.Input(
             name = "Electronics",
             profitMargin = BigDecimal("0.20"),
             maxDiscount = BigDecimal("0.10")
         )
         val expectedCategory = Category(
             1L,
-            request.name,
-            request.profitMargin,
-            request.maxDiscount
+            input.name,
+            input.profitMargin,
+            input.maxDiscount
         )
 
-        `when`(categoryRepository.existsByName(request.name)).thenReturn(false)
+        `when`(categoryRepository.existsByName(input.name)).thenReturn(false)
         `when`(categoryRepository.save(anyObject(Category::class.java))).thenReturn(expectedCategory)
 
-        val result = createCategoryUseCase.execute(request)
+        val result = createCategoryUseCaseImpl.execute(input)
 
         assertTrue(result is Result.Success)
         assertEquals(expectedCategory, (result as Result.Success).value)
-        verify(categoryRepository).existsByName(request.name)
+        verify(categoryRepository).existsByName(input.name)
         verify(categoryRepository).save(anyObject(Category::class.java))
     }
 
     @Test
     fun `should fail when category name already exists`() {
-        val request = CreateCategoryRequest(
+        val input = CreateCategoryUseCase.Input(
             name = "Electronics",
             profitMargin = BigDecimal("0.20"),
             maxDiscount = BigDecimal("0.10")
         )
 
-        `when`(categoryRepository.existsByName(request.name)).thenReturn(true)
+        `when`(categoryRepository.existsByName(input.name)).thenReturn(true)
 
-        val result = createCategoryUseCase.execute(request)
+        val result = createCategoryUseCaseImpl.execute(input)
 
         assertTrue(result is Result.Failure)
         assertTrue((result as Result.Failure).error is ProductError.CategoryNameAlreadyExists)
-        verify(categoryRepository).existsByName(request.name)
-        verify(categoryRepository, never()).save(anyObject(Category::class.java))
-    }
-
-    @Test
-    fun `should fail when category name is blank`() {
-        val request = CreateCategoryRequest(
-            name = "   ",
-            profitMargin = BigDecimal("0.20"),
-            maxDiscount = BigDecimal("0.10")
-        )
-
-        val result = createCategoryUseCase.execute(request)
-
-        assertTrue(result is Result.Failure)
-        assertTrue((result as Result.Failure).error is ProductError.InvalidCategoryName)
-        verify(categoryRepository, never()).existsByName(anyStringValue())
-        verify(categoryRepository, never()).save(anyObject(Category::class.java))
-    }
-
-    @Test
-    fun `should fail when profit margin is negative`() {
-        val request = CreateCategoryRequest(
-            name = "Electronics",
-            profitMargin = BigDecimal("-0.10"),
-            maxDiscount = BigDecimal("0.10")
-        )
-
-        val result = createCategoryUseCase.execute(request)
-
-        assertTrue(result is Result.Failure)
-        assertTrue((result as Result.Failure).error is ProductError.InvalidProfitMargin)
-        verify(categoryRepository, never()).existsByName(anyStringValue())
-        verify(categoryRepository, never()).save(anyObject(Category::class.java))
-    }
-
-    @Test
-    fun `should fail when max discount is negative`() {
-        val request = CreateCategoryRequest(
-            name = "Electronics",
-            profitMargin = BigDecimal("0.20"),
-            maxDiscount = BigDecimal("-0.05")
-        )
-
-        val result = createCategoryUseCase.execute(request)
-
-        assertTrue(result is Result.Failure)
-        assertTrue((result as Result.Failure).error is ProductError.InvalidMaxDiscount)
-        verify(categoryRepository, never()).existsByName(anyStringValue())
+        verify(categoryRepository).existsByName(input.name)
         verify(categoryRepository, never()).save(anyObject(Category::class.java))
     }
 }

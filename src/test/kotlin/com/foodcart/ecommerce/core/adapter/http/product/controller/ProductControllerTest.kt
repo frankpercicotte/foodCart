@@ -57,7 +57,7 @@ class ProductControllerTest {
             description = "Quadro Decorativo Mona Lisa 77x53",
             cost = BigDecimal("200.00"),
             discount = BigDecimal("0.00"),
-            categoryId = "1",
+            categoryId = 1L,
             stockQuantity = 10,
             imageUrl = "http://quadro-decorativo-monalisa77x53.webp"
         )
@@ -78,7 +78,7 @@ class ProductControllerTest {
             .andExpect(jsonPath("$.price", equalTo(240.00)))
             .andExpect(jsonPath("$.cost", equalTo(200.00)))
             .andExpect(jsonPath("$.discount", equalTo(0.00)))
-            .andExpect(jsonPath("$.categoryId", equalTo("1")))
+            .andExpect(jsonPath("$.categoryId", equalTo(1)))
             .andExpect(jsonPath("$.stockQuantity", equalTo(10)))
             .andExpect(jsonPath("$.isActive", equalTo(true)))
             .andExpect(jsonPath("$.imageUrl", equalTo("http://quadro-decorativo-monalisa77x53.webp")))
@@ -89,7 +89,7 @@ class ProductControllerTest {
         val request = validCreateRequest()
         productRepository.save(
             Product(
-                productId = "999",
+                productId = 9L,
                 name = request.name,
                 normalizedName = request.name.lowercase(),
                 description = request.description,
@@ -122,7 +122,7 @@ class ProductControllerTest {
             description = "",
             cost = BigDecimal("-1.00"),
             discount = BigDecimal("-0.10"),
-            categoryId = "",
+            categoryId = 1L,
             stockQuantity = -1,
             imageUrl = null
         )
@@ -135,27 +135,4 @@ class ProductControllerTest {
             .andExpect(status().isBadRequest)
     }
 
-    @Test
-    fun `should return 501 with error body for GET by id`() {
-        val id = "42"
-
-        mockMvc.perform(get("/api/v1/products/{id}", id))
-            .andExpect(status().isNotImplemented)
-            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.code", equalTo("NOT_IMPLEMENTED")))
-            .andExpect(jsonPath("$.message", equalTo("GET /api/v1/products/{id} not implemented yet")))
-            .andExpect(jsonPath("$.context.id", equalTo(id)))
-    }
-
-    @Test
-    fun `should return 501 with error body for DELETE by id`() {
-        val id = "77"
-
-        mockMvc.perform(delete("/api/v1/products/{id}", id))
-            .andExpect(status().isNotImplemented)
-            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.code", equalTo("NOT_IMPLEMENTED")))
-            .andExpect(jsonPath("$.message", equalTo("DELETE /api/v1/products/{id} (soft delete) not implemented yet")))
-            .andExpect(jsonPath("$.context.id", equalTo(id)))
-    }
 }

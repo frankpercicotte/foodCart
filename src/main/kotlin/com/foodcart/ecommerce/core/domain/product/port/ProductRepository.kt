@@ -6,6 +6,9 @@ interface ProductRepository {
     fun save(product: Product): Product
     fun existsByNormalizedNameAndCategoryId(
         normalizedName: String,
-        categoryId: String,
+        categoryId: Long,
     ): Boolean
+    fun findAll(): List<Product>
+    fun findById(productId: Long): Product?
+
 }

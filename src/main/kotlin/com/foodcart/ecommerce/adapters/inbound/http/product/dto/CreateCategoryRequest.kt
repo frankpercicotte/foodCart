@@ -12,4 +12,5 @@ data class CreateCategoryRequest(
     val profitMargin: BigDecimal= BigDecimal.ZERO,
     @field:DecimalMin("0.00")
     val maxDiscount: BigDecimal = BigDecimal.ZERO,
+    val isActive: Boolean = true,
 )

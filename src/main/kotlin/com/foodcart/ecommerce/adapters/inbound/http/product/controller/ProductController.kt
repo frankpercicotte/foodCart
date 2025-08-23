@@ -18,31 +18,56 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.PathVariable
+import org.slf4j.LoggerFactory
 
 @RestController
 @RequestMapping("/api/v1/products")
 class ProductController(
     private val createProductUseCase: CreateProductUseCase
 ) {
+    companion object {
+        private val logger = LoggerFactory.getLogger(ProductController::class.java)
+    }
 
     @PostMapping
     fun create(@Valid @RequestBody request: CreateProductRequest): ResponseEntity<Any> {
+        logger.info("POST /api/v1/products - Received request: name={}, categoryId={}", request.name, request.categoryId)
         val input = request.toInput()
         return when (val result = createProductUseCase.execute(input)) {
             is Result.Success -> {
                 val product = result.value
                 val body = product.toCreateResponse()
+                logger.info("POST /api/v1/products - Success: productId={}, name={}", product.productId, product.name)
                 ResponseEntity.status(HttpStatus.CREATED).body(body)
             }
             is Result.Failure -> {
                 val (status, errorBody) = (result.error).toHttp()
+                logger.warn(
+                    "POST /api/v1/products - Domain error: code={} message={} context={}",
+                    result.error.code,
+                    result.error.message,
+                    result.error.context
+                )
                 ResponseEntity.status(status).body(errorBody)
             }
         }
     }
 
+    @GetMapping()
+    fun getAll(): ResponseEntity<Any> {
+        logger.info("GET /api/v1/products - getAll - NOT_IMPLEMENTED.")
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(
+            ErrorResponse(
+                code = "NOT_IMPLEMENTED",
+                message = "GET /api/v1/products/{id} not implemented yet",
+                context = mapOf("Not implemented" to "Sorry, we're still working on it.")
+            )
+        )
+    }
+
     @GetMapping("/{id}")
     fun getById(@PathVariable id: String): ResponseEntity<Any> {
+        logger.info("GET /api/v1/products - getById - NOT_IMPLEMENTED.")
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(
             ErrorResponse(
                 code = "NOT_IMPLEMENTED",
@@ -54,6 +79,7 @@ class ProductController(
 
     @PutMapping("/{id}")
     fun update(@PathVariable id: String, @Valid @RequestBody request: CreateProductRequest): ResponseEntity<Any> {
+        logger.info("PUT /api/v1/products - NOT_IMPLEMENTED.")
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(
             ErrorResponse(
                 code = "NOT_IMPLEMENTED",
@@ -65,7 +91,7 @@ class ProductController(
 
     @DeleteMapping("/{id}")
     fun delete(@PathVariable id: String): ResponseEntity<Any> {
-        // Soft delete expected: set isActive = false
+        logger.info("DELETE /api/v1/products - NOT_IMPLEMENTED.")
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(
             ErrorResponse(
                 code = "NOT_IMPLEMENTED",
