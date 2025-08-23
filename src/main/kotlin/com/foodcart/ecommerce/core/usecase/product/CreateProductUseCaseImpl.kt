@@ -7,8 +7,9 @@ import com.foodcart.ecommerce.core.domain.product.port.ProductRepository
 import com.foodcart.ecommerce.core.domain.product.service.CategoryPricingService
 import com.foodcart.ecommerce.core.shared.Result
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Service
 
-
+@Service
 class CreateProductUseCaseImpl(
     private val productRepository: ProductRepository,
     private val categoryRepository: CategoryRepository,
