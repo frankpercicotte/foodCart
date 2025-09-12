@@ -1,7 +1,6 @@
 package com.foodcart.ecommerce.adapters.inbound.http.product.dto
 
 import jakarta.validation.constraints.DecimalMin
-import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import java.math.BigDecimal
 

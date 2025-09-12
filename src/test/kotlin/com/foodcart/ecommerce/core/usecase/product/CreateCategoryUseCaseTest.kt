@@ -1,12 +1,11 @@
 package com.foodcart.ecommerce.core.usecase.product
 
-import com.foodcart.ecommerce.core.domain.common.ProductError
+import com.foodcart.ecommerce.core.domain.common.exception.CategoryAlreadyExistsException
 import com.foodcart.ecommerce.core.domain.product.model.Category
 import com.foodcart.ecommerce.core.domain.product.port.CategoryRepository
-import com.foodcart.ecommerce.core.shared.Result
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
@@ -28,7 +27,6 @@ class CreateCategoryUseCaseTest {
 
     @Test
     fun `should create category successfully when all data is valid`() {
-
         val input = CreateCategoryUseCase.Input(
             name = "Electronics",
             profitMargin = BigDecimal("0.20"),
@@ -38,7 +36,8 @@ class CreateCategoryUseCaseTest {
             1L,
             input.name,
             input.profitMargin,
-            input.maxDiscount
+            input.maxDiscount,
+            isActive = true
         )
 
         `when`(categoryRepository.existsByName(input.name)).thenReturn(false)
@@ -46,14 +45,13 @@ class CreateCategoryUseCaseTest {
 
         val result = createCategoryUseCaseImpl.execute(input)
 
-        assertTrue(result is Result.Success)
-        assertEquals(expectedCategory, (result as Result.Success).value)
+        assertEquals(expectedCategory, result)
         verify(categoryRepository).existsByName(input.name)
         verify(categoryRepository).save(anyObject(Category::class.java))
     }
 
     @Test
-    fun `should fail when category name already exists`() {
+    fun `should throw CategoryAlreadyExistsException when category name already exists`() {
         val input = CreateCategoryUseCase.Input(
             name = "Electronics",
             profitMargin = BigDecimal("0.20"),
@@ -62,10 +60,11 @@ class CreateCategoryUseCaseTest {
 
         `when`(categoryRepository.existsByName(input.name)).thenReturn(true)
 
-        val result = createCategoryUseCaseImpl.execute(input)
+        val exception = assertThrows<CategoryAlreadyExistsException> {
+            createCategoryUseCaseImpl.execute(input)
+        }
 
-        assertTrue(result is Result.Failure)
-        assertTrue((result as Result.Failure).error is ProductError.CategoryNameAlreadyExists)
+        assertEquals("Electronics", exception.categoryName)
         verify(categoryRepository).existsByName(input.name)
         verify(categoryRepository, never()).save(anyObject(Category::class.java))
     }
