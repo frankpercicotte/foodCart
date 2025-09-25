@@ -43,12 +43,7 @@ class CreateProductUseCaseImpl(
             throw InactiveCategoryException(category.name)
         }
 
-        val finalPrice = categoryPricingService.calculateFinalPriceOne(category, input.cost).getOrNull()
-
-        if(finalPrice == null){
-            logger.error("Invalid final price calculated for cost={} categoryId={}", input.cost, input.categoryId)
-            throw InvalidPriceException(input.cost)
-        }
+        val finalPrice = categoryPricingService.calculateFinalPriceOne(category, input.cost)
 
         val product = Product(
             productId = null,

@@ -62,8 +62,7 @@ class CreateProductUseCaseTest {
         )
 
         `when`(categoryRepository.findById(input.categoryId.toLong())).thenReturn(expectedCategory)
-        `when`(categoryPricingService.calculateFinalPriceOne(expectedCategory, input.cost)).thenReturn(com.foodcart.ecommerce.core.shared.Result.Success(
-            finalPrice))
+        `when`(categoryPricingService.calculateFinalPriceOne(expectedCategory, input.cost)).thenReturn(finalPrice)
         `when`(productRepository.save(anyObject(Product::class.java))).thenReturn(expectedProduct)
 
         val result = createProductUseCase.execute(input)

@@ -1,10 +1,11 @@
 package com.foodcart.ecommerce.core.domain.product.service
 
-import com.foodcart.ecommerce.core.domain.common.ProductError
-import com.foodcart.ecommerce.core.shared.Result
+import com.foodcart.ecommerce.core.domain.common.exception.CalculationException
+import com.foodcart.ecommerce.core.domain.common.exception.InactiveCategoryException
+import com.foodcart.ecommerce.core.domain.common.exception.InvalidCostException
+import com.foodcart.ecommerce.core.domain.common.exception.InvalidPriceException
 import com.foodcart.ecommerce.core.domain.product.model.Category
 import com.foodcart.ecommerce.core.error.ErrorMessages
-import com.foodcart.ecommerce.core.shared.validation.validate
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -12,92 +13,59 @@ import java.math.RoundingMode
 @Service
 class CategoryPricingService {
 
-    fun calculateMarginAmount(category: Category, cost: BigDecimal): Result<BigDecimal, ProductError> {
-        if (cost < BigDecimal.ZERO) {
-            return Result.Failure(ProductError.InvalidCost(cost))
+    fun calculateMarginAmount(category: Category, cost: BigDecimal): BigDecimal {
+        if (cost <= BigDecimal.ZERO) {
+            throw InvalidCostException(cost)
         }
-        try {
-            val marginAmount = cost
+        return try {
+            cost
                 .multiply(category.profitMargin)
                 .divide(BigDecimal(100), 2, RoundingMode.HALF_UP)
-
-            return Result.Success(marginAmount)
         } catch (e: ArithmeticException) {
-            return Result.Failure(
-                ProductError.CalculationError(
-                    ErrorMessages.MARGIN_CALCULATION,
-                    e.message ?: ErrorMessages.UNKNOWN_ARITHMETIC_ERROR
-                )
+            throw CalculationException(
+                operation = ErrorMessages.MARGIN_CALCULATION,
+                details = e.message ?: ErrorMessages.UNKNOWN_ARITHMETIC_ERROR,
+                cause = e
             )
         }
     }
 
-    fun calculateFinalPriceOne(category: Category, cost: BigDecimal): Result<BigDecimal, ProductError> {
-        if (cost < BigDecimal.ZERO) {
-            return Result.Failure(ProductError.InvalidCost(cost))
+    fun calculateFinalPriceOne(category: Category, cost: BigDecimal): BigDecimal {
+        if (cost <= BigDecimal.ZERO) {
+            throw InvalidCostException(cost)
         }
         if (!category.isActive) {
-            return Result.Failure(ProductError.InactiveCategory(category.name))
+            throw InactiveCategoryException(category.name)
         }
+        val marginAmount = calculateMarginAmount(category, cost)
+        return cost.add(marginAmount).setScale(2, RoundingMode.HALF_UP)
+    }
 
-        return calculateMarginAmount(category, cost).map { marginAmount ->
-            cost.add(marginAmount).setScale(2, RoundingMode.HALF_UP)
+    fun calculateFinalPrice(category: Category, cost: BigDecimal): BigDecimal =
+        calculateFinalPriceOne(category, cost)
+
+    fun calculateFinalPrices(category: Category, costs: List<BigDecimal>): List<BigDecimal> =
+        costs.mapIndexed { _, cost -> calculateFinalPrice(category, cost) }
+
+    fun calculateActualMarginPercentage(cost: BigDecimal, finalPrice: BigDecimal): BigDecimal {
+        if (cost <= BigDecimal.ZERO) {
+            throw InvalidCostException(cost)
+        }
+        if (finalPrice < BigDecimal.ZERO) {
+            throw InvalidPriceException(finalPrice)
+        }
+        return try {
+            val margin = finalPrice.subtract(cost)
+            margin.divide(cost, 4, RoundingMode.HALF_UP)
+                .multiply(BigDecimal(100))
+                .setScale(2, RoundingMode.HALF_UP)
+        } catch (e: ArithmeticException) {
+            throw CalculationException(
+                operation = "Margin calculation failed",
+                details = e.message ?: "Unknown error",
+                cause = e
+            )
         }
     }
 
-    fun calculateFinalPrice(category: Category, cost: BigDecimal): Result<BigDecimal, ProductError> {
-        return validateCost(cost)
-            .flatMap { isActiveCategory(category) }
-            .flatMap { calculateMarginAmount(category, cost) }
-            .map { marginAmount ->
-                cost.add(marginAmount).setScale(2, RoundingMode.HALF_UP)
-            }
-    }
-
-
-    fun calculateFinalPrices(category: Category, costs: List<BigDecimal>): Result<List<BigDecimal>, ProductError> {
-        val finalPrices = mutableListOf<BigDecimal>()
-
-        for ((index, cost) in costs.withIndex()) {
-            when (val result = calculateFinalPrice(category, cost)) {
-                is Result.Success -> finalPrices.add(result.value)
-                is Result.Failure -> return Result.Failure(
-                    ProductError.CalculationError(
-                        "batch price calculation",
-                        "Failed at index $index: ${result.error.message}"
-                    )
-                )
-            }
-        }
-
-        return Result.Success(finalPrices)
-    }
-
-    fun calculateActualMarginPercentage(cost: BigDecimal, finalPrice: BigDecimal): Result<BigDecimal, ProductError> {
-        return validateCost(cost)
-            .flatMap { validatePrice(finalPrice) }
-            .flatMap {
-                runCatching {
-                    val margin = finalPrice.subtract(cost)
-                    margin.divide(cost, 4, RoundingMode.HALF_UP)
-                        .multiply(BigDecimal(100))
-                        .setScale(2, RoundingMode.HALF_UP)
-                }.fold(
-                    onSuccess = { Result.Success(it) },
-                    onFailure = { throwable ->
-                        Result.Failure(ProductError.CalculationError(
-                            "Margin calculation failed", throwable.message ?: "Unknown error"))
-                    }
-                )
-            }
-    }
-
-    fun validateCost(cost: BigDecimal): Result<Unit, ProductError> =
-        validate(cost > BigDecimal.ZERO) { ProductError.InvalidCost(cost) }
-
-    fun validatePrice(price: BigDecimal): Result<Unit, ProductError> =
-        validate(price >= BigDecimal.ZERO) { ProductError.InvalidPrice(price) }
-
-    fun isActiveCategory(category: Category): Result<Unit, ProductError> =
-        validate(category.isActive) { ProductError.InactiveCategory(category.name) }
 }

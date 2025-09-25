@@ -11,6 +11,10 @@ import com.foodcart.ecommerce.core.domain.common.exception.InvalidCategoryNameEx
 import com.foodcart.ecommerce.core.domain.common.exception.InvalidProfitMarginException
 import com.foodcart.ecommerce.core.domain.common.exception.InvalidMaxDiscountException
 import com.foodcart.ecommerce.core.domain.common.exception.MaxDiscountExceededException
+import com.foodcart.ecommerce.core.domain.common.exception.InvalidCostException
+import com.foodcart.ecommerce.core.domain.common.exception.InvalidDiscountPercentageException
+import com.foodcart.ecommerce.core.domain.common.exception.CalculationException
+import com.foodcart.ecommerce.core.domain.common.exception.NegativeDiscountPercentageException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -189,6 +193,53 @@ class GlobalExceptionHandler {
             "maxDiscount" to e.maxDiscount
         )
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body)
+    }
+
+    @ExceptionHandler(InvalidCostException::class)
+    fun handleInvalidCost(e: InvalidCostException): ResponseEntity<Map<String, Any>> {
+        logger.warn("Invalid cost: {}", e.message)
+        val body = mapOf(
+            "code" to "INVALID_COST",
+            "message" to (e.message ?: "Invalid cost"),
+            "cost" to e.cost
+        )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body)
+    }
+
+    @ExceptionHandler(InvalidDiscountPercentageException::class)
+    fun handleInvalidDiscountPercentage(e: InvalidDiscountPercentageException): ResponseEntity<Map<String, Any>> {
+        logger.warn("Invalid discount percentage: {}", e.message)
+        val body = mapOf(
+            "code" to "INVALID_DISCOUNT_MAX_PERCENTAGE",
+            "message" to (e.message ?: "Invalid discount percentage"),
+            "discountPercentage" to e.discountPercentage,
+            "maxAllowed" to e.maxAllowed,
+            "categoryName" to e.categoryName
+        )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body)
+    }
+
+    @ExceptionHandler(NegativeDiscountPercentageException::class)
+    fun handleNegativeDiscountPercentage(e: NegativeDiscountPercentageException): ResponseEntity<Map<String, Any>> {
+        logger.warn("Negative discount percentage: {}", e.message)
+        val body = mapOf(
+            "code" to "NEGATIVE_DISCOUNT_PERCENTAGE",
+            "message" to (e.message ?: "Negative discount percentage"),
+            "discountPercentage" to e.discountPercentage
+        )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body)
+    }
+
+    @ExceptionHandler(CalculationException::class)
+    fun handleCalculationException(e: CalculationException): ResponseEntity<Map<String, Any>> {
+        logger.warn("Calculation error: {}", e.message)
+        val body = mapOf(
+            "code" to "CALCULATION_ERROR",
+            "message" to (e.message ?: "Calculation error"),
+            "operation" to e.operation,
+            "details" to e.details
+        )
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(body)
     }
 
     @ExceptionHandler(Exception::class)
