@@ -41,7 +41,7 @@ class GetCategoryUseCaseImpl(
                 throw CategoryNotFoundException(id, errorMessage)
             }
         } catch (ex: CategoryNotFoundException) {
-            throw ex // Re-throw as is
+            throw ex
         } catch (ex: Exception) {
             val errorMessage = "Error fetching category with id: $id"
             logger.error(errorMessage, ex)

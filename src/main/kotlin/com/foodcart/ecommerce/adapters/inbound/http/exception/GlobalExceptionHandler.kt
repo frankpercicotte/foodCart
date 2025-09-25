@@ -3,6 +3,10 @@ package com.foodcart.ecommerce.adapters.inbound.http.exception
 import com.foodcart.ecommerce.core.domain.common.exception.CategoryAlreadyExistsException
 import com.foodcart.ecommerce.core.domain.common.exception.CategoryNotFoundException
 import com.foodcart.ecommerce.core.domain.common.exception.DatabaseOperationException
+import com.foodcart.ecommerce.core.domain.common.exception.InactiveCategoryException
+import com.foodcart.ecommerce.core.domain.common.exception.InvalidPriceException
+import com.foodcart.ecommerce.core.domain.common.exception.InvalidProductNameException
+import com.foodcart.ecommerce.core.domain.common.exception.ProductNameAlreadyExistsException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -93,6 +97,50 @@ class GlobalExceptionHandler {
             "operation" to e.operation
         )
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body)
+    }
+
+    @ExceptionHandler(ProductNameAlreadyExistsException::class)
+    fun handleProductNameAlreadyExists(e: ProductNameAlreadyExistsException): ResponseEntity<Map<String, Any>> {
+        logger.warn("Product name already exists: {}", e.message)
+        val body = mapOf(
+            "code" to "PRODUCT_NAME_ALREADY_EXISTS",
+            "message" to (e.message ?: "Product name already exists"),
+            "name" to e.name
+        )
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body)
+    }
+
+    @ExceptionHandler(InvalidProductNameException::class)
+    fun handleInvalidProductName(e: InvalidProductNameException): ResponseEntity<Map<String, Any>> {
+        logger.warn("Invalid product name: {}", e.message)
+        val body = mapOf(
+            "code" to "INVALID_PRODUCT_NAME",
+            "message" to (e.message ?: "Invalid product name"),
+            "name" to e.name
+        )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body)
+    }
+
+    @ExceptionHandler(InvalidPriceException::class)
+    fun handleInvalidPrice(e: InvalidPriceException): ResponseEntity<Map<String, Any>> {
+        logger.warn("Invalid product price: {}", e.message)
+        val body = mapOf(
+            "code" to "INVALID_PRODUCT_PRICE",
+            "message" to (e.message ?: "Invalid product price"),
+            "price" to e.price
+        )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body)
+    }
+
+    @ExceptionHandler(InactiveCategoryException::class)
+    fun handleInactiveCategory(e: InactiveCategoryException): ResponseEntity<Map<String, Any>> {
+        logger.warn("Inactive category: {}", e.message)
+        val body = mapOf(
+            "code" to "INACTIVE_CATEGORY",
+            "message" to (e.message ?: "Inactive category"),
+            "categoryName" to e.categoryName
+        )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body)
     }
 
     @ExceptionHandler(Exception::class)

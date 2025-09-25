@@ -1,11 +1,9 @@
 package com.foodcart.ecommerce.adapters.inbound.http.product.controller
 
 import com.foodcart.ecommerce.adapters.inbound.http.common.dto.ErrorResponse
-import com.foodcart.ecommerce.adapters.inbound.http.common.mapper.toHttp
 import com.foodcart.ecommerce.adapters.inbound.http.product.dto.CreateProductRequest
 import com.foodcart.ecommerce.adapters.inbound.http.product.mapper.toCreateResponse
 import com.foodcart.ecommerce.adapters.inbound.http.product.mapper.toInput
-import com.foodcart.ecommerce.core.shared.Result
 import com.foodcart.ecommerce.core.usecase.product.CreateProductUseCase
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -33,24 +31,10 @@ class ProductController(
     fun create(@Valid @RequestBody request: CreateProductRequest): ResponseEntity<Any> {
         logger.info("POST /api/v1/products - Received request: name={}, categoryId={}", request.name, request.categoryId)
         val input = request.toInput()
-        return when (val result = createProductUseCase.execute(input)) {
-            is Result.Success -> {
-                val product = result.value
-                val body = product.toCreateResponse()
-                logger.info("POST /api/v1/products - Success: productId={}, name={}", product.productId, product.name)
-                ResponseEntity.status(HttpStatus.CREATED).body(body)
-            }
-            is Result.Failure -> {
-                val (status, errorBody) = (result.error).toHttp()
-                logger.warn(
-                    "POST /api/v1/products - Domain error: code={} message={} context={}",
-                    result.error.code,
-                    result.error.message,
-                    result.error.context
-                )
-                ResponseEntity.status(status).body(errorBody)
-            }
-        }
+        val product = createProductUseCase.execute(input)
+        val body = product.toCreateResponse()
+        logger.info("POST /api/v1/products - Success: productId={}, name={}", product.productId, product.name)
+        return ResponseEntity.status(HttpStatus.CREATED).body(body)
     }
 
     @GetMapping()

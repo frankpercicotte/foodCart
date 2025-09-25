@@ -25,7 +25,7 @@ class UpdateCategoryUseCase(
         }
 
         val updatedCategory = Category(
-            categoryId = existingCategory.categoryId, // Preserve identity
+            categoryId = existingCategory.categoryId,
             name = request.name,
             profitMargin = request.profitMargin,
             maxDiscount = request.maxDiscount,

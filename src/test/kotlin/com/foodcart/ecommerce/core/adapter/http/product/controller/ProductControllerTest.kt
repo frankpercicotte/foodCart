@@ -4,15 +4,17 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.foodcart.ecommerce.adapters.inbound.http.product.controller.ProductController
 import com.foodcart.ecommerce.adapters.inbound.http.product.dto.CreateProductRequest
 import com.foodcart.ecommerce.adapters.inbound.http.product.mapper.toInput
-import com.foodcart.ecommerce.core.domain.common.ProductError
+import com.foodcart.ecommerce.adapters.inbound.http.exception.GlobalExceptionHandler
+import com.foodcart.ecommerce.core.domain.common.exception.CategoryNotFoundException
+import com.foodcart.ecommerce.core.domain.common.exception.ProductNameAlreadyExistsException
 import com.foodcart.ecommerce.core.domain.product.model.Product
-import com.foodcart.ecommerce.core.shared.Result
 import com.foodcart.ecommerce.core.usecase.product.CreateProductUseCase
 import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.context.annotation.Import
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
@@ -22,6 +24,7 @@ import java.math.BigDecimal
 import org.mockito.BDDMockito.given
 
 @WebMvcTest(controllers = [ProductController::class])
+@Import(GlobalExceptionHandler::class)
 class ProductControllerTest {
 
     @Autowired
@@ -67,7 +70,7 @@ class ProductControllerTest {
             imageUrl = request.imageUrl
         )
 
-        given(createProductUseCase.execute(request.toInput())).willReturn(Result.Success(product))
+        given(createProductUseCase.execute(request.toInput())).willReturn(product)
 
         mockMvc.perform(
             post("/api/v1/products")
@@ -90,8 +93,7 @@ class ProductControllerTest {
     @Test
     fun `should return 409 when product name already exists`() {
         val request = validCreateRequest()
-        val error = ProductError.ProductNameAlreadyExists(request.name)
-        given(createProductUseCase.execute(request.toInput())).willReturn(Result.Failure(error))
+        given(createProductUseCase.execute(request.toInput())).willAnswer { throw ProductNameAlreadyExistsException(request.name) }
 
         mockMvc.perform(
             post("/api/v1/products")
@@ -100,9 +102,9 @@ class ProductControllerTest {
         )
             .andExpect(status().isConflict)
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.code", equalTo(error.code)))
-            .andExpect(jsonPath("$.message", equalTo(error.message)))
-            .andExpect(jsonPath("$.context.name", equalTo(request.name)))
+            .andExpect(jsonPath("$.code", equalTo("PRODUCT_NAME_ALREADY_EXISTS")))
+            .andExpect(jsonPath("$.message").isString)
+            .andExpect(jsonPath("$.name", equalTo(request.name)))
     }
 
     @Test
