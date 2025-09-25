@@ -5,9 +5,10 @@ import com.foodcart.ecommerce.core.domain.product.model.Product
 import com.foodcart.ecommerce.core.domain.product.port.CategoryRepository
 import com.foodcart.ecommerce.core.domain.product.port.ProductRepository
 import com.foodcart.ecommerce.core.domain.product.service.CategoryPricingService
-import com.foodcart.ecommerce.core.shared.Result
+import com.foodcart.ecommerce.core.domain.common.exception.ProductNameAlreadyExistsException
 import com.foodcart.ecommerce.core.samples.CreateProductInputSample
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentMatchers.any
@@ -61,14 +62,12 @@ class CreateProductUseCaseTest {
         )
 
         `when`(categoryRepository.findById(input.categoryId.toLong())).thenReturn(expectedCategory)
-        `when`(categoryPricingService.calculateFinalPriceOne(expectedCategory, input.cost)).thenReturn(Result.Success(
-            finalPrice))
+        `when`(categoryPricingService.calculateFinalPriceOne(expectedCategory, input.cost)).thenReturn(finalPrice)
         `when`(productRepository.save(anyObject(Product::class.java))).thenReturn(expectedProduct)
 
         val result = createProductUseCase.execute(input)
 
-        Assertions.assertTrue(result is Result.Success)
-        Assertions.assertEquals(finalPrice, expectedProduct.price)
+        Assertions.assertEquals(finalPrice, result.price)
 
     }
 
@@ -79,9 +78,9 @@ class CreateProductUseCaseTest {
 
         `when`( productRepository.existsByNormalizedNameAndCategoryId(normalizedName, input.categoryId)).thenReturn(true)
 
-        val result = createProductUseCase.execute(input)
-
-        Assertions.assertTrue(result is Result.Failure)
+        assertThrows(ProductNameAlreadyExistsException::class.java) {
+            createProductUseCase.execute(input)
+        }
         verify(productRepository).existsByNormalizedNameAndCategoryId(normalizedName, input.categoryId)
         verify(productRepository, never()).save(anyObject(Product::class.java))
     }

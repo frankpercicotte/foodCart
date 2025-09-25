@@ -1,7 +1,9 @@
 package com.foodcart.ecommerce.core.domain.product.model
 
-import com.foodcart.ecommerce.core.domain.common.ProductError
-import com.foodcart.ecommerce.core.shared.Result
+import com.foodcart.ecommerce.core.domain.common.exception.InvalidCategoryNameException
+import com.foodcart.ecommerce.core.domain.common.exception.InvalidMaxDiscountException
+import com.foodcart.ecommerce.core.domain.common.exception.InvalidProfitMarginException
+import com.foodcart.ecommerce.core.domain.common.exception.MaxDiscountExceededException
 import java.math.BigDecimal
 
 class Category(
@@ -30,27 +32,25 @@ class Category(
             profitMargin: BigDecimal,
             maxDiscount: BigDecimal,
             isActive: Boolean = true
-        ): Result<Category, ProductError> {
+        ): Category {
             if (name.isBlank()) {
-                return Result.Failure(ProductError.InvalidCategoryName(name))
+                throw InvalidCategoryNameException(name)
             }
             if (profitMargin < BigDecimal.ZERO) {
-                return Result.Failure(ProductError.InvalidProfitMargin(profitMargin))
+                throw InvalidProfitMarginException(profitMargin)
             }
             if (maxDiscount < BigDecimal.ZERO) {
-                return Result.Failure(ProductError.InvalidMaxDiscount(maxDiscount))
+                throw InvalidMaxDiscountException(maxDiscount)
             }
             if (maxDiscount > BigDecimal(100)) {
-                return Result.Failure(ProductError.MaxDiscountExceeded(maxDiscount))
+                throw MaxDiscountExceededException(maxDiscount)
             }
-            return Result.Success(
-                Category(
-                    categoryId = id,
-                    name = name,
-                    profitMargin = profitMargin,
-                    maxDiscount = maxDiscount,
-                    isActive = isActive
-                )
+            return Category(
+                categoryId = id,
+                name = name,
+                profitMargin = profitMargin,
+                maxDiscount = maxDiscount,
+                isActive = isActive
             )
         }
 
@@ -61,7 +61,7 @@ class Category(
             profitMargin: BigDecimal = existingCategory.profitMargin,
             maxDiscount: BigDecimal = existingCategory.maxDiscount,
             isActive: Boolean = existingCategory.isActive
-        ): Result<Category, ProductError> {
+        ): Category {
             return create(
                 id = existingCategory.categoryId,
                 name = name,

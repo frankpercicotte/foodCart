@@ -3,25 +3,28 @@ package com.foodcart.ecommerce.core.adapter.http.product.controller
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.foodcart.ecommerce.adapters.inbound.http.product.controller.ProductController
 import com.foodcart.ecommerce.adapters.inbound.http.product.dto.CreateProductRequest
-import com.foodcart.ecommerce.core.domain.common.ProductError
-import com.foodcart.ecommerce.core.domain.product.model.Category
+import com.foodcart.ecommerce.adapters.inbound.http.product.mapper.toInput
+import com.foodcart.ecommerce.adapters.inbound.http.exception.GlobalExceptionHandler
+import com.foodcart.ecommerce.core.domain.common.exception.CategoryNotFoundException
+import com.foodcart.ecommerce.core.domain.common.exception.ProductNameAlreadyExistsException
 import com.foodcart.ecommerce.core.domain.product.model.Product
-import com.foodcart.ecommerce.core.testsupport.inmemory.InMemoryCategoryRepository
-import com.foodcart.ecommerce.core.testsupport.inmemory.InMemoryProductRepository
+import com.foodcart.ecommerce.core.usecase.product.CreateProductUseCase
 import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.context.annotation.Import
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import java.math.BigDecimal
+import org.mockito.BDDMockito.given
 
 @WebMvcTest(controllers = [ProductController::class])
-@Import(com.foodcart.ecommerce.core.testsupport.config.ProductControllerWebMvcTestConfig::class)
+@Import(GlobalExceptionHandler::class)
 class ProductControllerTest {
 
     @Autowired
@@ -30,25 +33,12 @@ class ProductControllerTest {
     @Autowired
     private lateinit var objectMapper: ObjectMapper
 
-    @Autowired
-    private lateinit var productRepository: InMemoryProductRepository
-
-    @Autowired
-    private lateinit var categoryRepository: InMemoryCategoryRepository
+    @MockitoBean
+    private lateinit var createProductUseCase: CreateProductUseCase
 
     @BeforeEach
     fun setup() {
-        productRepository.reset()
-        categoryRepository.reset()
-        categoryRepository.save(
-            Category(
-                1L,
-                "Default",
-                BigDecimal("20"),
-                BigDecimal("50"),
-                true
-            )
-        )
+        // No-op: usando mock do use case
     }
 
     private fun validCreateRequest(): CreateProductRequest =
@@ -65,6 +55,22 @@ class ProductControllerTest {
     @Test
     fun `should return 201 and response body when product is created successfully`() {
         val request = validCreateRequest()
+
+        val product = Product(
+            productId = 1L,
+            name = request.name,
+            normalizedName = request.name.lowercase(),
+            description = request.description,
+            price = BigDecimal("240.00"),
+            cost = request.cost,
+            discount = request.discount,
+            categoryId = request.categoryId,
+            stockQuantity = request.stockQuantity,
+            isActive = true,
+            imageUrl = request.imageUrl
+        )
+
+        given(createProductUseCase.execute(request.toInput())).willReturn(product)
 
         mockMvc.perform(
             post("/api/v1/products")
@@ -87,21 +93,7 @@ class ProductControllerTest {
     @Test
     fun `should return 409 when product name already exists`() {
         val request = validCreateRequest()
-        productRepository.save(
-            Product(
-                productId = 9L,
-                name = request.name,
-                normalizedName = request.name.lowercase(),
-                description = request.description,
-                price = BigDecimal("10.00"),
-                cost = request.cost,
-                discount = request.discount,
-                categoryId = request.categoryId,
-                stockQuantity = request.stockQuantity,
-                isActive = true,
-                imageUrl = request.imageUrl
-            )
-        )
+        given(createProductUseCase.execute(request.toInput())).willAnswer { throw ProductNameAlreadyExistsException(request.name) }
 
         mockMvc.perform(
             post("/api/v1/products")
@@ -110,9 +102,9 @@ class ProductControllerTest {
         )
             .andExpect(status().isConflict)
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.code", equalTo(ProductError.ProductNameAlreadyExists(request.name).code)))
-            .andExpect(jsonPath("$.message", equalTo(ProductError.ProductNameAlreadyExists(request.name).message)))
-            .andExpect(jsonPath("$.context.name", equalTo(request.name)))
+            .andExpect(jsonPath("$.code", equalTo("PRODUCT_NAME_ALREADY_EXISTS")))
+            .andExpect(jsonPath("$.message").isString)
+            .andExpect(jsonPath("$.name", equalTo(request.name)))
     }
 
     @Test

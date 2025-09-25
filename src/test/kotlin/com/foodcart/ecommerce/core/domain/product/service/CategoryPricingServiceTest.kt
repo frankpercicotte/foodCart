@@ -1,12 +1,11 @@
 package com.foodcart.ecommerce.core.domain.product.service
 
-import com.foodcart.ecommerce.core.domain.common.ProductError
-import com.foodcart.ecommerce.core.shared.Result
+import com.foodcart.ecommerce.core.domain.common.exception.InactiveCategoryException
+import com.foodcart.ecommerce.core.domain.common.exception.InvalidCostException
 import com.foodcart.ecommerce.core.domain.product.model.Category
-import com.foodcart.ecommerce.core.error.ErrorCode
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 import java.math.BigDecimal
 
 class CategoryPricingServiceTest {
@@ -21,32 +20,25 @@ class CategoryPricingServiceTest {
 
         val result = pricingService.calculateFinalPrice(activeCategory, cost)
 
-        assertTrue(result.isSuccess())
-        assertEquals(BigDecimal("130.00"), result.getOrNull())
+        assertEquals(BigDecimal("130.00"), result)
     }
 
     @Test
     fun `should return error for negative cost`() {
         val negativeCost = BigDecimal("-10.0")
 
-        val result = pricingService.calculateFinalPrice(activeCategory, negativeCost)
-
-        assertTrue(result.isFailure())
-        assertTrue(result is Result.Failure)
-        assertTrue((result).error is ProductError.InvalidCost)
-        assertEquals(ErrorCode.INVALID_COST.code, result.error.code)
+        assertThrows<InvalidCostException> {
+            pricingService.calculateFinalPrice(activeCategory, negativeCost)
+        }
     }
 
     @Test
     fun `should return error for inactive category`() {
         val cost = BigDecimal("100.0")
 
-        val result = pricingService.calculateFinalPrice(inactiveCategory, cost)
-
-        assertTrue(result.isFailure())
-        assertTrue(result is Result.Failure)
-        assertTrue((result).error is ProductError.InactiveCategory)
-        assertEquals(ErrorCode.INACTIVE_CATEGORY.code, result.error.code)
+        assertThrows<InactiveCategoryException> {
+            pricingService.calculateFinalPrice(inactiveCategory, cost)
+        }
     }
 
     @Test
@@ -55,8 +47,7 @@ class CategoryPricingServiceTest {
 
         val result = pricingService.calculateMarginAmount(activeCategory, cost)
 
-        assertTrue(result.isSuccess())
-        assertEquals(BigDecimal("15.00"), result.getOrNull())
+        assertEquals(BigDecimal("15.00"), result)
     }
 
     @Test
@@ -66,8 +57,7 @@ class CategoryPricingServiceTest {
 
         val result = pricingService.calculateActualMarginPercentage(cost, finalPrice)
 
-        assertTrue(result.isSuccess())
-        assertEquals(BigDecimal("30.00"), result.getOrNull())
+        assertEquals(BigDecimal("30.00"), result)
     }
 
     @Test
@@ -75,10 +65,8 @@ class CategoryPricingServiceTest {
         val zeroCost = BigDecimal.ZERO
         val finalPrice = BigDecimal("100.0")
 
-        val result = pricingService.calculateActualMarginPercentage(zeroCost, finalPrice)
-
-        assertTrue(result.isFailure())
-        assertTrue(result is Result.Failure)
-        assertTrue((result).error is ProductError.InvalidCost)
+        assertThrows<InvalidCostException> {
+            pricingService.calculateActualMarginPercentage(zeroCost, finalPrice)
+        }
     }
 }

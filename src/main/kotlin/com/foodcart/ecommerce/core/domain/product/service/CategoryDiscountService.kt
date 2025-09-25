@@ -1,30 +1,24 @@
 package com.foodcart.ecommerce.core.domain.product.service
 
-import com.foodcart.ecommerce.core.domain.common.ProductError
-import com.foodcart.ecommerce.core.shared.Result
+import com.foodcart.ecommerce.core.domain.common.exception.InactiveCategoryException
+import com.foodcart.ecommerce.core.domain.common.exception.InvalidDiscountPercentageException
+import com.foodcart.ecommerce.core.domain.common.exception.InvalidPriceException
+import com.foodcart.ecommerce.core.domain.common.exception.NegativeDiscountPercentageException
 import com.foodcart.ecommerce.core.domain.product.model.Category
 import java.math.BigDecimal
 import java.math.RoundingMode
 
 
 class CategoryDiscountService {
-    fun validateDiscount(category: Category, discountPercentage: BigDecimal): Result<Unit, ProductError> {
-        return when {
-            !category.isActive -> Result.Failure(ProductError.InactiveCategory(category.name))
-
-            discountPercentage < BigDecimal.ZERO -> Result.Failure(
-                ProductError.NegativeDiscountPercentage(discountPercentage)
+    fun validateDiscount(category: Category, discountPercentage: BigDecimal) {
+        when {
+            !category.isActive -> throw InactiveCategoryException(category.name)
+            discountPercentage < BigDecimal.ZERO -> throw NegativeDiscountPercentageException(discountPercentage)
+            discountPercentage > category.maxDiscount -> throw InvalidDiscountPercentageException(
+                discountPercentage = discountPercentage,
+                maxAllowed = category.maxDiscount,
+                categoryName = category.name
             )
-
-            discountPercentage > category.maxDiscount -> Result.Failure(
-                ProductError.InvalidDiscountPercentage(
-                    discountPercentage = discountPercentage,
-                    maxAllowed = category.maxDiscount,
-                    categoryName = category.name
-                )
-            )
-
-            else -> Result.Success(Unit)
         }
     }
 
@@ -32,54 +26,49 @@ class CategoryDiscountService {
         category: Category,
         price: BigDecimal,
         discountPercentage: BigDecimal
-    ): Result<BigDecimal, ProductError> {
+    ): BigDecimal {
         if (price < BigDecimal.ZERO) {
-            return Result.Failure(ProductError.InvalidPrice(price))
+            throw InvalidPriceException(price)
         }
-        return validateDiscount(category, discountPercentage).map {
-            price
-                .multiply(discountPercentage)
-                .divide(BigDecimal(100), 2, RoundingMode.HALF_UP)
-        }
+        validateDiscount(category, discountPercentage)
+        return price
+            .multiply(discountPercentage)
+            .divide(BigDecimal(100), 2, RoundingMode.HALF_UP)
     }
 
     fun applyDiscount(
         category: Category,
         price: BigDecimal,
         discountPercentage: BigDecimal
-    ): Result<BigDecimal, ProductError> {
-        return calculateDiscountAmount(category, price, discountPercentage).map { discountAmount ->
-            price.subtract(discountAmount).setScale(2, RoundingMode.HALF_UP)
-        }
-    }
+    ): BigDecimal =
+        price.subtract(calculateDiscountAmount(category, price, discountPercentage)).setScale(2, RoundingMode.HALF_UP)
 
-    fun getMaximumDiscountAllowed(category: Category): Result<BigDecimal, ProductError> {
-        return if (category.isActive) {
-            Result.Success(category.maxDiscount)
-        } else {
-            Result.Failure(ProductError.InactiveCategory(category.name))
-        }
-    }
+    fun getMaximumDiscountAllowed(category: Category): BigDecimal =
+        if (category.isActive) category.maxDiscount else throw InactiveCategoryException(category.name)
 
     fun applyDiscountWithDetails(
         category: Category,
         price: BigDecimal,
         discountPercentage: BigDecimal
-    ): Result<DiscountResult, ProductError> {
-        return calculateDiscountAmount(category, price, discountPercentage).map { discountAmount ->
-            val finalPrice = price.subtract(discountAmount).setScale(2, RoundingMode.HALF_UP)
-            DiscountResult(
-                originalPrice = price,
-                discountPercentage = discountPercentage,
-                discountAmount = discountAmount,
-                finalPrice = finalPrice,
-                categoryName = category.name
-            )
-        }
+    ): DiscountResult {
+        val discountAmount = calculateDiscountAmount(category, price, discountPercentage)
+        val finalPrice = price.subtract(discountAmount).setScale(2, RoundingMode.HALF_UP)
+        return DiscountResult(
+            originalPrice = price,
+            discountPercentage = discountPercentage,
+            discountAmount = discountAmount,
+            finalPrice = finalPrice,
+            categoryName = category.name
+        )
     }
 
     fun canApplyDiscount(category: Category, discountPercentage: BigDecimal): Boolean {
-        return validateDiscount(category, discountPercentage).isSuccess()
+        return try {
+            validateDiscount(category, discountPercentage)
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 
     data class DiscountResult(
