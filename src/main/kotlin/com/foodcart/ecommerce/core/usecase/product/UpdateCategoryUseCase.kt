@@ -2,26 +2,27 @@ package com.foodcart.ecommerce.core.usecase.product
 
 import com.foodcart.ecommerce.core.domain.product.model.Category
 import com.foodcart.ecommerce.core.domain.product.port.CategoryRepository
-import com.foodcart.ecommerce.core.domain.common.ProductError
-import com.foodcart.ecommerce.core.shared.Result
+import com.foodcart.ecommerce.core.domain.common.exception.CategoryNotFoundException
+import com.foodcart.ecommerce.core.domain.common.exception.DatabaseOperationException
+import com.foodcart.ecommerce.core.domain.common.exception.InvalidCategoryNameException
+import com.foodcart.ecommerce.core.domain.common.exception.InvalidMaxDiscountException
+import com.foodcart.ecommerce.core.domain.common.exception.InvalidProfitMarginException
+import com.foodcart.ecommerce.core.domain.common.exception.MaxDiscountExceededException
 import java.math.BigDecimal
 
 
 class UpdateCategoryUseCase(
     private val categoryRepository: CategoryRepository
 ) {
-    fun execute(request: UpdateCategoryRequest): Result<Category, ProductError> {
+    fun execute(request: UpdateCategoryRequest): Category {
         val existingCategory = categoryRepository.findById(request.id)
-            ?: return Result.Failure(ProductError.CategoryNotFound(request.id))
+            ?: throw CategoryNotFoundException(request.id)
 
-        val validationResult = validateRequest(request)
-        if (validationResult.isFailure()) {
-            return validationResult as Result.Failure<Category, ProductError>
-        }
+        validateRequestOrThrow(request)
 
         if (request.name != existingCategory.name &&
             categoryRepository.existsByName(request.name)) {
-            return Result.Failure(ProductError.CategoryNameAlreadyExists(request.name))
+            throw InvalidCategoryNameException(request.name)
         }
 
         val updatedCategory = Category(
@@ -33,32 +34,28 @@ class UpdateCategoryUseCase(
         )
 
         return try {
-            val savedCategory = categoryRepository.update(updatedCategory)
-            Result.Success(savedCategory)
+            categoryRepository.update(updatedCategory)
         } catch (e: Exception) {
-            Result.Failure(ProductError.DatabaseError("Failed to update category", e.message))
+            throw DatabaseOperationException("update(category)", "Failed to update category", e)
         }
     }
 
-    private fun validateRequest(request: UpdateCategoryRequest): Result<Unit, ProductError> {
-
+    private fun validateRequestOrThrow(request: UpdateCategoryRequest) {
         if (request.name.isBlank()) {
-            return Result.Failure(ProductError.InvalidCategoryName(request.name))
+            throw InvalidCategoryNameException(request.name)
         }
 
         if (request.profitMargin < BigDecimal.ZERO) {
-            return Result.Failure(ProductError.InvalidProfitMargin(request.profitMargin))
+            throw InvalidProfitMarginException(request.profitMargin)
         }
 
         if (request.maxDiscount < BigDecimal.ZERO) {
-            return Result.Failure(ProductError.InvalidMaxDiscount(request.maxDiscount))
+            throw InvalidMaxDiscountException(request.maxDiscount)
         }
 
         if (request.maxDiscount > BigDecimal(100)) {
-            return Result.Failure(ProductError.MaxDiscountExceeded(request.maxDiscount))
+            throw MaxDiscountExceededException(request.maxDiscount)
         }
-
-        return Result.Success(Unit)
     }
 }
 

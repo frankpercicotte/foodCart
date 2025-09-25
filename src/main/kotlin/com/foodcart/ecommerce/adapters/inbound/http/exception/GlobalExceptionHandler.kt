@@ -7,6 +7,10 @@ import com.foodcart.ecommerce.core.domain.common.exception.InactiveCategoryExcep
 import com.foodcart.ecommerce.core.domain.common.exception.InvalidPriceException
 import com.foodcart.ecommerce.core.domain.common.exception.InvalidProductNameException
 import com.foodcart.ecommerce.core.domain.common.exception.ProductNameAlreadyExistsException
+import com.foodcart.ecommerce.core.domain.common.exception.InvalidCategoryNameException
+import com.foodcart.ecommerce.core.domain.common.exception.InvalidProfitMarginException
+import com.foodcart.ecommerce.core.domain.common.exception.InvalidMaxDiscountException
+import com.foodcart.ecommerce.core.domain.common.exception.MaxDiscountExceededException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -139,6 +143,50 @@ class GlobalExceptionHandler {
             "code" to "INACTIVE_CATEGORY",
             "message" to (e.message ?: "Inactive category"),
             "categoryName" to e.categoryName
+        )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body)
+    }
+
+    @ExceptionHandler(InvalidCategoryNameException::class)
+    fun handleInvalidCategoryName(e: InvalidCategoryNameException): ResponseEntity<Map<String, Any>> {
+        logger.warn("Invalid category name: {}", e.message)
+        val body = mapOf(
+            "code" to "INVALID_CATEGORY_NAME",
+            "message" to (e.message ?: "Invalid category name"),
+            "name" to e.name
+        )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body)
+    }
+
+    @ExceptionHandler(InvalidProfitMarginException::class)
+    fun handleInvalidProfitMargin(e: InvalidProfitMarginException): ResponseEntity<Map<String, Any>> {
+        logger.warn("Invalid profit margin: {}", e.message)
+        val body = mapOf(
+            "code" to "INVALID_PROFIT_MARGIN",
+            "message" to (e.message ?: "Invalid profit margin"),
+            "profitMargin" to e.profitMargin
+        )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body)
+    }
+
+    @ExceptionHandler(InvalidMaxDiscountException::class)
+    fun handleInvalidMaxDiscount(e: InvalidMaxDiscountException): ResponseEntity<Map<String, Any>> {
+        logger.warn("Invalid max discount: {}", e.message)
+        val body = mapOf(
+            "code" to "INVALID_MAX_DISCOUNT",
+            "message" to (e.message ?: "Invalid max discount"),
+            "maxDiscount" to e.maxDiscount
+        )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body)
+    }
+
+    @ExceptionHandler(MaxDiscountExceededException::class)
+    fun handleMaxDiscountExceeded(e: MaxDiscountExceededException): ResponseEntity<Map<String, Any>> {
+        logger.warn("Max discount exceeded: {}", e.message)
+        val body = mapOf(
+            "code" to "MAX_DISCOUNT_EXCEEDED",
+            "message" to (e.message ?: "Max discount exceeded"),
+            "maxDiscount" to e.maxDiscount
         )
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body)
     }
