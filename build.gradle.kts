@@ -49,6 +49,5 @@ allOpen {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
-	// Silencia o aviso do JDK sobre Class Data Sharing em ambiente de teste
 	jvmArgs("-Xshare:off")
 }
