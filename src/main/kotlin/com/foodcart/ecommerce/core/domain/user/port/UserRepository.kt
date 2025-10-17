@@ -1,0 +1,16 @@
+package com.foodcart.ecommerce.core.domain.user.port
+
+import com.foodcart.ecommerce.core.domain.user.model.User
+
+/**
+ * Porta de saída para operações de persistência de usuários
+ */
+interface UserRepository {
+    fun save(user: User): User
+    fun findById(id: String): User?
+    fun findByEmail(email: String): User?
+    fun findByGoogleId(googleId: String): User?
+    fun findAll(): List<User>
+    fun existsByEmail(email: String): Boolean
+    fun existsByGoogleId(googleId: String): Boolean
+}
