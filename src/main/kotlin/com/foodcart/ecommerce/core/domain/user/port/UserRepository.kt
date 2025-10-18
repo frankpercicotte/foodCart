@@ -2,9 +2,6 @@ package com.foodcart.ecommerce.core.domain.user.port
 
 import com.foodcart.ecommerce.core.domain.user.model.User
 
-/**
- * Porta de saída para operações de persistência de usuários
- */
 interface UserRepository {
     fun save(user: User): User
     fun findById(id: Long): User?
