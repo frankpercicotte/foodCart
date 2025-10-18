@@ -76,7 +76,7 @@ class UserRepositoryImplIntegrationTest {
     fun `should return null when user not found by id`() {
         setup()
 
-        val foundUser = userRepository.findById("nonexistent")
+        val foundUser = userRepository.findById(999L)
 
         assertNull(foundUser)
     }

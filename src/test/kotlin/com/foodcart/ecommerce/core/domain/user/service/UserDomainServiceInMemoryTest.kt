@@ -1,8 +1,6 @@
 package com.foodcart.ecommerce.core.domain.user.service
 
-import com.foodcart.ecommerce.core.domain.user.model.User
 import com.foodcart.ecommerce.core.domain.user.model.UserRole
-import com.foodcart.ecommerce.core.domain.user.port.UserRepository
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -40,10 +38,8 @@ class UserDomainServiceInMemoryTest {
         val name = "Test User"
         val googleId = "google123"
 
-        // Primeiro cria um usuário
         userDomainService.createUserFromGoogle(email, "Existing User", "existingGoogle")
 
-        // Depois tenta criar outro com mesmo email
         try {
             userDomainService.createUserFromGoogle(email, name, googleId)
             assert(false) { "Should have thrown exception" }
@@ -58,10 +54,8 @@ class UserDomainServiceInMemoryTest {
         val name = "Test User"
         val googleId = "existingGoogleId"
 
-        // Primeiro cria um usuário
         userDomainService.createUserFromGoogle("other@example.com", "Other User", googleId)
 
-        // Depois tenta criar outro com mesmo Google ID
         try {
             userDomainService.createUserFromGoogle(email, name, googleId)
             assert(false) { "Should have thrown exception" }
@@ -76,10 +70,8 @@ class UserDomainServiceInMemoryTest {
         val name = "Test User"
         val googleId = "existingGoogleId"
 
-        // Primeiro cria um usuário
         val existingUser = userDomainService.createUserFromGoogle(email, name, googleId)
 
-        // Depois tenta encontrar/criar o mesmo usuário
         val result = userDomainService.findOrCreateUserFromGoogle(email, name, googleId)
 
         assertEquals(existingUser.id, result.id)
@@ -93,10 +85,8 @@ class UserDomainServiceInMemoryTest {
         val name = "Test User"
         val googleId = "newGoogleId"
 
-        // Primeiro cria um usuário
         val existingUser = userDomainService.createUserFromGoogle(email, name, "oldGoogleId")
 
-        // Depois tenta encontrar/criar com novo Google ID mas mesmo email
         val result = userDomainService.findOrCreateUserFromGoogle(email, name, googleId)
 
         assertEquals(existingUser.id, result.id)
@@ -119,7 +109,6 @@ class UserDomainServiceInMemoryTest {
 
     @Test
     fun `should update user role when requested by admin`() {
-        // Cria um admin
         val adminUser = userDomainService.createUserFromGoogle(
             "admin@example.com",
             "Admin",
@@ -127,7 +116,6 @@ class UserDomainServiceInMemoryTest {
             UserRole.ADMIN
         )
 
-        // Cria um usuário regular
         val regularUser = userDomainService.createUserFromGoogle(
             "user@example.com",
             "User",
@@ -135,7 +123,6 @@ class UserDomainServiceInMemoryTest {
             UserRole.CUSTOMER
         )
 
-        // Admin atualiza role do usuário
         val result = userDomainService.updateUserRole(regularUser.id, UserRole.ADMIN, adminUser.role)
 
         assertEquals(UserRole.ADMIN, result.role)
@@ -144,7 +131,6 @@ class UserDomainServiceInMemoryTest {
 
     @Test
     fun `should throw exception when non-admin tries to update user role`() {
-        // Cria dois usuários comuns
         val customerUser = userDomainService.createUserFromGoogle(
             "customer@example.com",
             "Customer",
@@ -158,7 +144,6 @@ class UserDomainServiceInMemoryTest {
             UserRole.CUSTOMER
         )
 
-        // Usuário comum tenta alterar role
         try {
             userDomainService.updateUserRole(otherUser.id, UserRole.ADMIN, customerUser.role)
             assert(false) { "Should have thrown exception" }
@@ -169,7 +154,6 @@ class UserDomainServiceInMemoryTest {
 
     @Test
     fun `should throw exception when trying to update role of non-existent user`() {
-        // Cria um admin
         val adminUser = userDomainService.createUserFromGoogle(
             "admin@example.com",
             "Admin",
@@ -177,38 +161,11 @@ class UserDomainServiceInMemoryTest {
             UserRole.ADMIN
         )
 
-        // Tenta atualizar usuário inexistente
         try {
-            userDomainService.updateUserRole("nonExistentUser", UserRole.ADMIN, adminUser.role)
-            assert(false) { "Should have thrown exception" }
+            userDomainService.updateUserRole(999L, UserRole.ADMIN, adminUser.role)
         } catch (e: IllegalArgumentException) {
             assert(e.message?.contains("Usuário não encontrado") == true)
+            assert(e.message?.contains("ID: 999") == true)
         }
     }
-}
-
-// In-memory implementation for testing
-class InMemoryUserRepository : UserRepository {
-    private val usersById = mutableMapOf<String, User>()
-    private val usersByEmail = mutableMapOf<String, User>()
-    private val usersByGoogleId = mutableMapOf<String, User>()
-
-    override fun save(user: User): User {
-        usersById[user.id] = user
-        usersByEmail[user.email] = user
-        usersByGoogleId[user.googleId] = user
-        return user
-    }
-
-    override fun findById(id: String): User? = usersById[id]
-
-    override fun findByEmail(email: String): User? = usersByEmail[email]
-
-    override fun findByGoogleId(googleId: String): User? = usersByGoogleId[googleId]
-
-    override fun findAll(): List<User> = usersById.values.toList()
-
-    override fun existsByEmail(email: String): Boolean = usersByEmail.containsKey(email)
-
-    override fun existsByGoogleId(googleId: String): Boolean = usersByGoogleId.containsKey(googleId)
 }

@@ -55,7 +55,7 @@ class UserDomainService(private val userRepository: UserRepository) {
     /**
      * Atualiza o papel de um usuário (apenas admins podem fazer isso)
      */
-    fun updateUserRole(userId: String, newRole: UserRole, requestingUserRole: UserRole): User {
+    fun updateUserRole(userId: Long, newRole: UserRole, requestingUserRole: UserRole): User {
         if (requestingUserRole != UserRole.ADMIN) {
             throw IllegalArgumentException("Apenas administradores podem alterar papéis de usuários")
         }

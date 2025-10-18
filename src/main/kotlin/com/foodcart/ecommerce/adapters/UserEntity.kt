@@ -10,7 +10,7 @@ import java.time.LocalDateTime
 data class UserEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
+    val id: Long = 0L,
 
     @Column(nullable = false, unique = true)
     val email: String,
@@ -32,7 +32,7 @@ data class UserEntity(
     val updatedAt: LocalDateTime
 ) {
     fun toDomain(): User = User(
-        id = id?.toString() ?: throw IllegalStateException("User ID cannot be null when converting to domain"),
+        id = id,
         email = email,
         name = name,
         role = role,
@@ -43,7 +43,7 @@ data class UserEntity(
 
     companion object {
         fun fromDomain(user: User): UserEntity = UserEntity(
-            id = user.id.toLongOrNull(),
+            id = user.id,
             email = user.email,
             name = user.name,
             role = user.role,
