@@ -3,7 +3,6 @@ package com.foodcart.ecommerce.adapters
 import com.foodcart.ecommerce.core.domain.user.model.User
 import com.foodcart.ecommerce.core.domain.user.port.UserRepository
 import org.slf4j.LoggerFactory
-import org.springframework.dao.DataAccessException
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -25,18 +24,22 @@ class UserRepositoryImpl(
         }
     }
 
-    override fun findById(id: String): User? {
+    override fun findById(id: Long): User? {
         return runCatching {
             logger.debug("Finding user by ID: $id")
-            val entityId = id.toLongOrNull() ?: return null
-            val entity = jpaRepository.findById(entityId).orElse(null) ?: return null
-            entity.toDomain()
+            val entity = jpaRepository.findById(id).orElse(null)
+                ?: run {
+                    logger.debug("User not found with ID: $id")
+                    return null
+                }
+            val domainUser = entity.toDomain()
+            logger.debug("Successfully found user with email: ${domainUser.email}")
+            domainUser
         }.getOrElse { ex ->
             logger.error("Failed to find user by ID: $id", ex)
             throw RuntimeException("Error finding user by ID: ${ex.message}", ex)
         }
     }
-
     override fun findByEmail(email: String): User? {
         return runCatching {
             logger.debug("Finding user by email: $email")

@@ -191,38 +191,6 @@ Implementar autenticação com Google OAuth2 para dois tipos de usuários:
 11. Usuário é redirecionado para página de checkout
 ```
 
----
-
-## 📋 Próximos Passos Sugeridos
-
-**Para começar, sugiro:**
-1. **Começar pela FASE 1** (estrutura de domínio) - mais isolada
-2. **Depois FASE 2** (persistência) - testar criação básica de usuários
-3. **Em paralelo, configurar conta Google** para OAuth2
-4. **Então partir para FASE 5** (OAuth2 config) quando estrutura estiver sólida
-
----
-
-## 🛠️ Tecnologias Envolvidas
-
-- **Kotlin** + **Spring Boot 3.5.3**
-- **Spring Security** com OAuth2 Client
-- **Google OAuth2** (Google Identity Services)
-- **H2 Database** (dev) / **PostgreSQL** (prod)
-- **JUnit 5** + **MockK** para testes
-- **Gradle Kotlin DSL** para build
-
----
-
-## ⚠️ Considerações Importantes
-
-1. **Segurança**: Sempre usar variáveis de ambiente para credenciais
-2. **Testes**: Implementar testes em cada fase para validar funcionalidade
-3. **Clean Architecture**: Manter separação clara entre domínio, casos de uso e adapters
-4. **OAuth2 Flow**: Implementar corretamente o fluxo de autorização do Google
-5. **Error Handling**: Tratar adequadamente erros de autenticação e autorização
-
----
 
 ## 📚 Recursos Úteis
 
@@ -230,8 +198,4 @@ Implementar autenticação com Google OAuth2 para dois tipos de usuários:
 - [Spring Security OAuth2](https://docs.spring.io/spring-security/reference/servlet/oauth2/index.html)
 - [Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
 
----
 
-**✏️ Documento criado em:** 16 de outubro de 2025
-**📝 Projeto:** FoodCart E-commerce API
-**👨‍💻 Responsável:** Franklin Percicotte

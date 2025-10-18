@@ -7,7 +7,7 @@ import com.foodcart.ecommerce.core.domain.user.model.User
  */
 interface UserRepository {
     fun save(user: User): User
-    fun findById(id: String): User?
+    fun findById(id: Long): User?
     fun findByEmail(email: String): User?
     fun findByGoogleId(googleId: String): User?
     fun findAll(): List<User>

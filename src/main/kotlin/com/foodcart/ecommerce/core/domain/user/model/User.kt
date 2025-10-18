@@ -1,25 +1,30 @@
 package com.foodcart.ecommerce.core.domain.user.model
 
+import jakarta.validation.constraints.Email
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Size
 import java.time.LocalDateTime
 
-/**
- * Entidade de domínio representando um usuário do sistema
- */
+
 data class User(
-    val id: String,
+    val id: Long,
+
+    @field:NotBlank(message = "Email is required")
+    @field:Email(message = "Email must have a valid format")
     val email: String,
+
+    @field:NotBlank(message = "Name is required")
+    @field:Size(min = 2, max = 100, message = "Name must be between 2 and 100 characters")
     val name: String,
+
     val role: UserRole,
+
+    @field:NotBlank(message = "Google ID is required")
     val googleId: String,
+
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime
 ) {
-    init {
-        require(email.isNotBlank()) { "Email não pode ser vazio" }
-        require(name.isNotBlank()) { "Nome não pode ser vazio" }
-        require(googleId.isNotBlank()) { "Google ID não pode ser vazio" }
-    }
-
     companion object {
         fun create(
             email: String,
@@ -29,7 +34,7 @@ data class User(
         ): User {
             val now = LocalDateTime.now()
             return User(
-                id = generateId(),
+                id = 0L,
                 email = email,
                 name = name,
                 role = role,
@@ -37,10 +42,6 @@ data class User(
                 createdAt = now,
                 updatedAt = now
             )
-        }
-
-        private fun generateId(): String {
-            return "user_${System.currentTimeMillis()}_${(Math.random() * 1000).toInt()}"
         }
     }
 
